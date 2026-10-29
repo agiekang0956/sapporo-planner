@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin"><title>삿포로 여행 일정 플래너</title><link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.9.0/dist/maplibre-gl.css"><style>
+:root{font-family:system-ui,-apple-system,'Malgun Gothic',sans-serif;color:#152b3c;background:#f3f6f9}*{box-sizing:border-box}body{margin:0}button,input,textarea,select{font:inherit}button{cursor:pointer;border:1px solid #d8e1e8;border-radius:9px;padding:9px 12px;background:#fff;color:#18344a}button:hover{background:#eaf3f9}button.primary{color:white;background:#12669b;border-color:#12669b}button.danger{color:#ad3341}header{padding:16px 22px;background:#102e45;color:white;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}header h1{font-size:20px;margin:0}header small{color:#c4d9e5}header button{font-size:13px}.head-actions{display:flex;flex-wrap:wrap;gap:6px}.layout{display:grid;grid-template-columns:minmax(360px,46%) 1fr;gap:14px;max-width:1650px;margin:14px auto;padding:0 14px}.panel{border:1px solid #dbe4eb;background:white;border-radius:14px;overflow:hidden;box-shadow:0 4px 18px #17334f0b}.pad{padding:16px}.flex{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.between{justify-content:space-between}.muted{color:#728391;font-size:13px}.tiny{font-size:12px}.panel h2{font-size:16px;margin:0 0 10px}.days{display:flex;gap:7px;overflow-x:auto;padding-bottom:9px}.days button{white-space:nowrap}.days button.selected{background:#12669b;color:white;border-color:#12669b}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{display:block;font-size:12px;font-weight:650;color:#4b6577;margin-bottom:4px}input,select,textarea{padding:10px;width:100%;border:1px solid #cfdee7;border-radius:8px;background:#fff;min-width:0}textarea{min-height:55px;resize:vertical}.full{grid-column:1/-1}.form-foot{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:10px}.agenda{max-height:calc(100vh - 460px);min-height:200px;overflow-y:auto;padding:0 14px 16px}.entry{border:1px solid #dde7ef;border-left:4px solid #1583ad;border-radius:10px;padding:11px;margin:8px 0;background:#fff}.entry.move{border-left-color:#e5a34b;background:#fffdfa}.entry-top{display:flex;justify-content:space-between;align-items:center;gap:5px}.entry strong{font-size:14px}.entry .sub{font-size:12px;color:#55717f;margin-top:5px;word-break:break-word}.entry-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}.entry-actions button{padding:5px 8px;font-size:12px}.right{display:flex;flex-direction:column;min-height:650px}.search{display:flex;gap:6px}.search button{white-space:nowrap}.search-results{max-height:180px;overflow:auto}.result{display:block;text-align:left;width:100%;border-radius:6px;margin-top:5px;font-size:13px}.mapwrap{position:relative;flex:1;min-height:450px}#map{height:100%;min-height:450px;background:#dce8ef}.map-alert{position:absolute;z-index:700;top:12px;left:50%;transform:translateX(-50%);max-width:88%;width:430px;background:white;border:1px solid #cbdce6;padding:12px;border-radius:10px;box-shadow:0 5px 24px #152b3c30;display:none}.selected-place{border:1px solid #b6d7ea;background:#f1faff;padding:12px;border-radius:10px;margin-top:10px;font-size:13px}.selected-place button{font-size:12px;padding:6px 9px}.footer-note{padding:10px 15px;border-top:1px solid #dbe4eb;font-size:12px;color:#637987}.notice{padding:10px 14px;background:#fff7e8;color:#775b2a;border:1px solid #f3dfb2;border-radius:9px;font-size:12px}.pill{display:inline-block;border-radius:30px;background:#e7f2fa;color:#176999;padding:3px 7px;font-size:11px}#status{font-size:12px;color:#b5e6cf}.maplibregl-map{font-family:inherit}.maplibregl-popup-content{font-family:inherit;font-size:13px}.maplibregl-canvas{outline:none}.empty{padding:24px 8px;color:#758b99;text-align:center}.map-style{max-width:175px}.help{font-size:13px;line-height:1.6;color:#536e7d}.section-sep{border:0;border-top:1px solid #e5edf1;margin:14px 0}@media(max-width:950px){.layout{grid-template-columns:1fr}.agenda{max-height:none}.right{min-height:500px}.mapwrap,#map{min-height:430px}}@media(max-width:520px){header{padding:13px}.layout{padding:0 8px}.pad{padding:12px}.form-grid{gap:8px}}
+
+.seq-marker.seq-grouped{display:flex;flex-direction:row;align-items:center;justify-content:center;min-width:0;width:max-content;height:auto;min-height:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;gap:4px;line-height:1;white-space:nowrap;overflow:visible}.seq-grouped .group-number{display:flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:34px;height:26px;padding:0 6px;border:2px solid #fff;border-radius:6px;background:#147bbc;color:#fff;font-size:11px;font-weight:800;box-shadow:0 1px 5px #102a4077}.seq-grouped .group-number.group-move{background:#b36a09}.seq-grouped .group-number.group-visit{background:#147bbc}.seq-marker{display:flex;align-items:center;justify-content:center;min-width:29px;height:29px;padding:0 6px;border:2px solid #fff;border-radius:18px;color:#fff;background:#147bbc;font-size:12px;font-weight:800;box-shadow:0 2px 6px #102a40a6;white-space:nowrap;cursor:pointer}.seq-move{background:#b36a09}.seq-legend{border-bottom:1px solid #e2eaf0;background:#f7fafc;padding:9px 14px;font-size:12px;color:#526b7c}.seq-legend strong{color:#223f54}.seq-dot{display:inline-flex;align-items:center;justify-content:center;background:#147bbc;color:#fff;border-radius:99px;min-width:24px;height:23px;font-weight:700}.seq-dot.move{background:#b36a09}#sequenceInfo{margin-top:5px;overflow-wrap:anywhere;max-height:62px;overflow-y:auto}
+.waypoint-item{border:1px solid #d6e1e9;border-radius:9px;padding:9px;margin-top:8px;background:#fbfdff}.waypoint-item .flex{margin-top:7px}.waypoint-item button{font-size:12px;padding:5px 9px}.waypoint-item strong{font-size:13px}
+/* Mobile-first enhancements; desktop layout remains unchanged */
+.mobile-nav,.mobile-editor-toggle,.mobile-map-back{display:none}
+@media(max-width:950px){
+ body{background:#f3f6fb}header{padding:12px 14px 11px}header h1{font-size:17px}header small{font-size:11px}
+ header .head-actions{width:100%;gap:5px}header .head-actions button{font-size:12px;padding:8px 10px;flex:1}#status{width:100%;font-size:11px;text-align:right}
+ .layout{display:block;max-width:none;margin:0;padding:9px 9px 94px}
+ .layout > .panel{border-radius:14px;box-shadow:0 2px 12px #142a4010}
+ .layout.mobile-show-schedule > .right{display:none}
+ .layout.mobile-show-map > section.panel:first-child{display:none}
+ .layout.mobile-show-map > .right{display:flex}
+ .pad{padding:13px}.days{padding:4px 0 9px}.days button{min-height:44px}
+ .form-grid input,.form-grid select,.form-grid textarea,#searchInput{font-size:16px}
+ .entry{padding:14px 12px;margin:10px 0}.entry strong{font-size:15px}.entry-actions button{min-height:37px}
+ .agenda{overflow:visible;max-height:none;min-height:160px;padding:0 12px 14px}
+ .right{min-height:calc(100dvh - 200px)}.right .mapwrap{min-height:52dvh;flex:1}#map{min-height:52dvh}
+ .search-results{max-height:28dvh}.result{min-height:47px;padding:11px}
+ .seq-legend{font-size:11px}.mobile-editor-toggle{display:block;width:100%;min-height:45px;margin-top:10px;background:#eff7fd;color:#12669b;border:1px solid #b7d8ec;font-weight:750}
+ .mobile-editor-body{padding-top:10px}.mobile-editor-body[hidden]{display:none!important}
+ .mobile-nav{display:flex;position:fixed;z-index:2000;bottom:0;left:0;right:0;padding:8px 12px max(9px,env(safe-area-inset-bottom));gap:10px;background:#fff;border-top:1px solid #d8e2eb;box-shadow:0 -3px 15px #17334f20}
+ .mobile-nav button{display:flex;align-items:center;justify-content:center;flex:1;min-height:49px;border-radius:12px;font-weight:700;font-size:15px}
+ .mobile-nav button.active{background:#12669b;color:#fff;border-color:#12669b}
+ .mobile-map-back{display:block;position:sticky;top:0;z-index:900;background:#e9f5fc;color:#155f87;border-color:#bed9ec;min-height:42px;width:100%;font-weight:650}
+ .map-alert{top:8px;max-width:94%;padding:9px;font-size:12px}
+}
+@media(max-width:380px){header .head-actions button{padding:8px 5px;font-size:11px}.form-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.layout{padding:6px 6px 92px}}
+</style><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script></head><body>
+<header><div><h1>🗾 삿포로 여행 일정 플래너</h1><small>저장된 여행 일정 포함 · 이후 변경은 각 브라우저에 자동 저장</small></div><div class="head-actions"><button id="exportBtn">💾 일정 파일 저장</button><button id="importBtn">📂 일정 파일 불러오기</button><button id="resetBtn">새 일정</button><span id="status">준비됨</span><input type="file" id="fileInput" accept=".json,application/json" hidden></div></header>
+<div class="layout"><section class="panel"><div class="pad"><div class="flex between"><h2>① 여행 날짜별 일정</h2><div class="flex"><input type="date" id="newDate" style="width:150px"><button id="addDay">+ 날짜 추가</button><button type="button" id="renameDay" title="현재 선택한 날짜의 모든 일정을 새 날짜로 이동">✏️ 선택 날짜 변경</button></div></div><div id="days" class="days"></div><div class="flex between" style="margin-top:8px"><h2 id="dayHeading">일정</h2><span class="muted" id="dayCount"></span></div><div class="notice">장소 방문은 지도에서 위치를 클릭하거나 검색 후 선택하세요. 이동 일정은 출발지와 도착지를 지도에서 직접 검색·선택할 수 있습니다.</div><hr class="section-sep"><div class="flex"><button class="primary" id="visitMode">📍 장소 방문 추가</button><button id="moveMode">🚶 이동 일정 추가</button></div><h2 style="margin-top:14px" id="formTitle">장소 방문 추가</h2><div class="form-grid"><div><label>시작 시간</label><input type="time" id="start" value="09:00"></div><div><label>종료 시간</label><input type="time" id="end" value="10:00"></div><div class="full" id="visitFields"><label>방문 장소 <span class="muted">(지도 선택 또는 직접 입력)</span></label><input id="placeName" placeholder="예: 오도리 공원"><div class="muted tiny" id="placeCoord" style="margin:4px 0">위치 미선택 · 검색 결과를 선택하면 상호명·주소·좌표가 함께 저장됩니다.</div></div><div class="full" id="moveFields" hidden><label>출발 장소</label><select id="fromPlace"></select><label style="margin-top:8px">도착 장소</label><select id="toPlace"></select><div class="muted tiny" style="margin-top:6px">기존 방문 장소를 선택하거나 아래 버튼으로 지도를 검색해 직접 지정하세요.</div><div class="flex" style="margin-top:8px"><button type="button" id="findFrom">🔎 출발지 지도 검색</button><button type="button" id="findTo">🔎 도착지 지도 검색</button></div><div class="selected-place" id="movePicked" style="margin-top:8px">출발지·도착지를 선택해 주세요.</div><div class="flex" style="margin-top:8px"><button type="button" id="addWaypoint">＋ 경유지 추가</button><span class="muted tiny">경유지는 여러 개 추가하고 순서를 변경할 수 있습니다.</span></div><div id="waypointList" class="waypoint-list"></div></div><div class="full"><label>메모</label><textarea id="memo" placeholder="예약, 비용, 방문 팁 등"></textarea></div></div><div class="form-foot"><button id="cancelEdit" hidden>수정 취소</button><button class="primary" id="saveEntry">+ 일정에 추가</button></div></div><div id="agenda" class="agenda"></div><div class="footer-note">일정 자동 저장: 이 브라우저의 localStorage · 다른 PC/사람에게 전달할 때는 상단의 <b>일정 파일 저장</b>을 사용하세요.</div></section>
+<section class="panel right"><div class="pad"><div class="flex between"><h2>② 지도에서 장소 찾기</h2><span class="pill">지도 기본 언어: 한국어 🇰🇷</span></div><form class="search" id="searchForm"><input id="searchInput" placeholder="삿포로 장소 검색 (예: 삿포로 맥주 박물관)"><button class="primary" type="submit">검색</button></form><div class="muted tiny" style="margin-top:5px">방문 장소뿐 아니라 이동 일정의 출발지·도착지도 검색할 수 있습니다. 일부 장소명으로도 검색할 수 있습니다. 예: 맥주, 오도리, 스스키노. 구글 지도 공유 링크(긴 주소)도 붙여넣어 장소를 선택할 수 있습니다. 현재 지도 주변을 우선 검색하고, 없으면 일본 전역으로 검색 범위를 넓힙니다. 결과는 현재 지도 중심에서 가까운 순으로 표시합니다.</div><div id="searchTarget" class="notice" hidden></div><div id="searchResults" class="search-results"></div><div id="selectedBox" class="selected-place" hidden></div></div><div class="seq-legend"><strong>날짜별 동선</strong> · <span class="seq-dot">1</span> 방문지 &nbsp; <span class="seq-dot move">2-1</span> 이동 출발·도착<br>파란색은 저장된 방문지, 주황색은 이동 지점입니다. 동일 장소의 여러 일정 번호는 한 마커에 함께 표시합니다. 이동 일정 작성 중에도 출발·경유·도착 지점을 지도에 미리 표시합니다. 연결선은 직선입니다.<div id="sequenceInfo"></div></div><div class="mapwrap"><div id="map"></div><div id="mapAlert" class="map-alert"><b>지도 연결을 확인 중입니다.</b><p class="help" id="mapAlertText">인터넷 연결 또는 외부 지도 서비스 접근을 확인하세요.</p><a href="https://www.openstreetmap.org/#map=12/43.0618/141.3545" target="_blank" rel="noopener">OpenStreetMap 열기</a></div></div><div class="footer-note">지도: OpenFreeMap (한국어 우선), 모바일 대체 지도 OpenStreetMap (원어 표시 가능) · 장소 데이터: © OpenStreetMap contributors · 확대하거나 이동한 지도를 클릭하면 위치를 지정합니다. 실제 도로·대중교통 경로는 일정의 Google 지도 길찾기 버튼에서 확인합니다.</div></section></div>
+<nav class="mobile-nav" aria-label="모바일 메뉴"><button type="button" id="mobileScheduleTab" class="active" aria-current="page">🗓️ 일정</button><button type="button" id="mobileMapTab">🗺️ 지도 · 장소 검색</button></nav>
+<script src="https://unpkg.com/maplibre-gl@5.9.0/dist/maplibre-gl.js"></script><script>
+(()=>{'use strict';
+const EMBEDDED_SCHEDULE={"days":["2027-02-21","2027-02-22","2027-02-23"],"entries":[{"id":"mvs3r6uls11gp","day":"2027-02-21","start":"07:00","end":"10:00","kind":"visit","memo":"삿포로 도착 10:00","name":"신치토세공항","point":{"lat":42.787797,"lon":141.680769},"address":"신치토세공항, 美々, 지토세시, 이시카리 진흥국, 홋카이도, 홋카이도 지방, 066-0012, 일본","from":null,"to":null,"waypoints":[]},{"id":"mvs44tjpuk23j","day":"2027-02-21","start":"10:00","end":"12:00","kind":"move","memo":"JR열차 타고 신치토세공항 -> 삿포로역 이동\n*45분 소요*","from":"mvs3r6uls11gp","to":null,"fromPoint":null,"toPoint":{"lat":43.0686555,"lon":141.350787},"fromName":"신치토세공항","toName":"삿포로역","fromAddress":"","toAddress":"","waypoints":[],"point":null},{"id":"mvs4pqoqd0zt7","day":"2027-02-21","start":"12:00","end":"12:30","kind":"move","memo":"그랜드 호텔에 짐 맡긴 후 다누키코지 상점가로 이동","from":null,"to":null,"fromPoint":{"lat":43.0686555,"lon":141.350787},"toPoint":{"lat":43.0575597,"lon":141.3529668},"fromName":"삿포로역","toName":"다누키코지","fromAddress":"","toAddress":"다누키코지, 札幌駅前通, 南2条西3, 狸小路, 中央区, 삿포로시, 이시카리 진흥국, 홋카이도, 홋카이도 지방, 060-8502, 일본","waypoints":[{"name":"삿포로 그랜드 호텔","lat":43.0626869,"lon":141.3509469,"address":"Google 지도 링크에서 추출한 좌표 (장소 위치 확인 필요)"}],"point":null},{"id":"mvs5okt74v6tm","day":"2027-02-21","start":"12:30","end":"13:30","kind":"visit","memo":"사마 스프카레 점심!","name":"SAMA","point":{"lat":43.0568945,"lon":141.3509901},"address":"SAMA, 西5丁目線, 南3条西5, 狸小路, 中央区, 삿포로시, 이시카리 진흥국, 홋카이도, 홋카이도 지방, 060-8502, 일본","from":null,"to":null,"waypoints":[]},{"id":"mvs6jcolemzbk","day":"2027-02-21","start":"18:00","end":"19:00","kind":"visit","memo":"저녁!","name":"덴 재패니즈 뷔페다이닝","point":{"lat":43.0543562,"lon":141.3513301},"address":"삿포로시 주오구 · 제공된 Google 지도 공유 링크의 위치","from":null,"to":null,"waypoints":[]},{"id":"mvs6sx9je0hm4","day":"2027-02-21","start":"19:00","end":"20:00","kind":"visit","memo":"니카 구경","name":"니카","point":{"lat":43.0554048,"lon":141.3536128},"address":"ニッカウヰスキー, 札幌駅前通, 南7条西4丁目, 南7条西4, 中央区, 삿포로시, 이시카리 진흥국, 홋카이도, 홋카이도 지방, 064-0807, 일본","from":null,"to":null,"waypoints":[]},{"id":"mvs7bx6k37519","day":"2027-02-21","start":"14:30","end":"18:00","kind":"visit","memo":"모유크 삿포로 구경, 다누키코지 구경","name":"moyuk SAPPORO","point":{"lat":43.0575648,"lon":141.3531685},"address":"Google 지도 링크에서 추출한 좌표 (장소 위치 확인 필요)","from":null,"to":null,"waypoints":[]},{"id":"mvs7dk0cr9erd","day":"2027-02-21","start":"21:00","end":"21:30","kind":"move","memo":"","from":"mvt5yyonh7mkk","to":null,"fromPoint":null,"toPoint":{"lat":43.0626869,"lon":141.3509469},"fromName":"바리스타트 커피","toName":"삿포로 그랜드 호텔","fromAddress":"Google 지도 링크에서 추출한 좌표 (장소 위치 확인 필요)","toAddress":"Google 지도 링크에서 추출한 좌표 (장소 위치 확인 필요)","waypoints":[],"point":null},{"id":"mvt5qnj07f51q","day":"2027-02-21","start":"12:30","end":"13:30","kind":"visit","memo":"스프카레 두번째","name":"오쿠시바쇼텐","point":{"lat":43.0588175,"lon":141.3499365},"address":"Google 지도 링크에서 추출한 좌표 (장소 위치 확인 필요)","from":null,"to":null,"waypoints":[]},{"id":"mvt5yyonh7mkk","day":"2027-02-21","start":"20:00","end":"21:00","kind":"visit","memo":"카페 1","name":"바리스타트 커피","point":{"lat":43.0565241,"lon":141.350838},"address":"Google 지도 링크에서 추출한 좌표 (장소 위치 확인 필요)","from":null,"to":null,"waypoints":[]},{"id":"mvtmvry0zczc6","day":"2027-02-22","start":"08:00","end":"08:10","kind":"move","memo":"숙소 -> 오도리역 31번 출구","from":null,"to":null,"fromPoint":{"lat":43.0626869,"lon":141.3509469},"toPoint":{"lat":43.0617335,"lon":141.3552703},"fromName":"삿포로 그랜드 호텔","toName":"기타이치조","fromAddress":"Google 지도 링크에서 추출한 좌표 (장소 위치 확인 필요)","toAddress":"Google 지도 링크에서 추출한 좌표 (장소 위치 확인 필요)","waypoints":[],"point":null},{"id":"mvtn45mnix17s","day":"2027-02-22","start":"09:40","end":"10:00","kind":"visit","memo":"휴계소","name":"스나가와 하이웨이 오아시스","point":{"lat":43.5222022,"lon":141.930215},"address":"砂川ハイウェイオアシス館, 도오자동차도, 空知太東四条一丁目, 北光, 스나가와시, 소라치 종합진흥국, 홋카이도, 홋카이도 지방, 073-0174, 일본","from":null,"to":null,"waypoints":[]},{"id":"mvtn61h1y8zlx","day":"2027-02-23","start":"09:00","end":"10:00","kind":"visit","memo":"","name":"오타루 역","point":{"lat":43.1969549,"lon":140.993989},"address":"오타루 역, 国道5号, 稲穂二丁目, 稲穂, 오타루시, 시리베시 종합진흥국, 홋카이도, 홋카이도 지방, 047-8520, 일본","from":null,"to":null,"waypoints":[]},{"id":"mvtn9c4g92jgb","day":"2027-02-22","start":"11:30","end":"12:10","kind":"visit","memo":"","name":"크리스마스 나무","point":{"lat":43.5543792,"lon":142.4442504},"address":"크리스마스 나무, 国道237号, 西九線北三十四号, 비에이초, 가미카와군, 가미카와 종합진흥국, 홋카이도, 홋카이도 지방, 일본","from":null,"to":null,"waypoints":[]},{"id":"mvtod7effmexq","day":"2027-02-22","start":"12:20","end":"12:25","kind":"move","memo":"비에이역 -> 키친 요시미","from":null,"to":"mvtodu45d61pw","fromPoint":{"lat":43.5909601,"lon":142.4612251},"toPoint":null,"fromName":"비에이","toName":"키친 요시미","fromAddress":"비에이, 花園北町通, 北町一丁目, 扇町, 비에이초, 가미카와군, 가미카와 종합진흥국, 홋카이도, 홋카이도 지방, 071-0215, 일본","toAddress":"Google 지도 링크에서 추출한 좌표 (장소 위치 확인 필요)","waypoints":[]},{"id":"mvtodu45d61pw","day":"2027-02-22","start":"12:20","end":"13:00","kind":"visit","memo":"","name":"키친 요시미","point":{"lat":43.5888943,"lon":142.4643449},"address":"Google 지도 링크에서 추출한 좌표 (장소 위치 확인 필요)","from":null,"to":null,"waypoints":[]},{"id":"mvtogmf6qmdxd","day":"2027-02-22","start":"13:00","end":"13:20","kind":"visit","memo":"","name":"café Biei Hills","point":{"lat":43.5906644,"lon":142.4627694},"address":"Google 지도 링크에서 추출한 좌표 (장소 위치 확인 필요)","from":null,"to":null,"waypoints":[]},{"id":"mvtola24krslj","day":"2027-02-22","start":"13:25","end":"13:30","kind":"move","memo":"버스 다시 타러!","from":"mvtogmf6qmdxd","to":null,"fromPoint":null,"toPoint":{"lat":43.5909601,"lon":142.4612251},"fromName":"café Biei Hills","toName":"비에이","fromAddress":"Google 지도 링크에서 추출한 좌표 (장소 위치 확인 필요)","toAddress":"비에이, 花園北町通, 北町一丁目, 扇町, 비에이초, 가미카와군, 가미카와 종합진흥국, 홋카이도, 홋카이도 지방, 071-0215, 일본","waypoints":[]},{"id":"mvtolzp3h45wa","day":"2027-02-22","start":"13:50","end":"14:20","kind":"visit","memo":"","name":"흰수염 폭포","point":{"lat":43.4746092,"lon":142.6393959},"address":"Google 지도 링크에서 추출한 좌표 (장소 위치 확인 필요)","from":null,"to":null,"waypoints":[]},{"id":"mvtomrz5ad07j","day":"2027-02-22","start":"15:00","end":"15:40","kind":"visit","memo":"","name":"탁신관 갤러리","point":{"lat":43.52988,"lon":142.4893646},"address":"Google 지도 링크에서 추출한 좌표 (장소 위치 확인 필요)","from":null,"to":null,"waypoints":[]},{"id":"mvtor019bg41y","day":"2027-02-22","start":"15:40","end":"18:30","kind":"move","memo":"","from":"mvtomrz5ad07j","to":null,"fromPoint":null,"toPoint":{"lat":43.0617335,"lon":141.3552703},"fromName":"탁신관 갤러리","toName":"기타이치조","fromAddress":"Google 지도 링크에서 추출한 좌표 (장소 위치 확인 필요)","toAddress":"Google 지도 링크에서 추출한 좌표 (장소 위치 확인 필요)","waypoints":[],"point":null}]};
+const KEY='sapporo-planner-202702-new-json-20261030-v2';const $=id=>document.getElementById(id);let data={days:[],entries:[]},day='',mode='visit',editing=null,picked=null,placeAddress='',movePoints={from:null,to:null},waypoints=[],searchTarget='visit',map=null,layer=null,markers=[],lines=[],previewMarkers=[],previewLines=[],pickMarker=null,lastSearchAt=0;const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const fmt=d=>d?`${d.slice(5,7)}/${d.slice(8,10)}`:'';
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(data));$('status').textContent='✓ 자동 저장됨';}catch(e){$('status').textContent='저장 실패: 파일로 저장하세요';}}
+function normalize(raw){if(!raw||!Array.isArray(raw.days)||!Array.isArray(raw.entries))throw Error('올바른 일정 파일이 아닙니다.');return {days:[...new Set(raw.days.filter(v=>/^\d{4}-\d{2}-\d{2}$/.test(v)))].sort(),entries:raw.entries.filter(e=>e&&e.id&&e.day&&['visit','move'].includes(e.kind)).map(e=>({...e,from:e.from??null,to:e.to??null,point:e.point??null,waypoints:Array.isArray(e.waypoints)?e.waypoints.filter(w=>w&&Number.isFinite(Number(w.lat))&&Number.isFinite(Number(w.lon))).map(w=>({name:String(w.name||'경유지'),lat:Number(w.lat),lon:Number(w.lon),address:String(w.address||'')})):[]}))}}
+function initData(){data=normalize(EMBEDDED_SCHEDULE);try{let r=localStorage.getItem(KEY);if(r)data=normalize(JSON.parse(r))}catch(e){console.warn(e)}if(!data.days.length){const today=new Date();data.days=[`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`]}day=data.days[0];$('newDate').value=day;persist()}
+function entriesFor(d=day){return data.entries.filter(e=>e.day===d).sort((a,b)=>a.start.localeCompare(b.start)||a.end.localeCompare(b.end))}
+function visitList(){const seen=new Map();data.entries.filter(e=>e.kind==='visit'&&e.point&&Number.isFinite(Number(e.point.lat))&&Number.isFinite(Number(e.point.lon))).forEach(e=>seen.set(e.id,{id:e.id,name:e.name,point:e.point}));return [...seen.values()]}
+// Queue a redraw when itinerary data changes. A style reload may temporarily
+// make MapLibre's isStyleLoaded() false; do not silently drop the update.
+let sequenceDirty=true, sequenceRevision=0, sequenceTimers=[];
+function requestSequenceRender(){
+ sequenceDirty=true;
+ const revision=++sequenceRevision;
+ sequenceTimers.forEach(clearTimeout);sequenceTimers=[];
+ const attempt=()=>{
+  if(revision!==sequenceRevision||!sequenceDirty||!map)return;
+  try{if(map.isStyleLoaded()&&renderMap()!==false)sequenceDirty=false;}
+  catch(e){console.warn('동선 갱신 재시도:',e)}
+ };
+ attempt();
+ [100,350,900,1800,3200].forEach(delay=>sequenceTimers.push(setTimeout(attempt,delay)));
+}
+function render(){renderDays();renderPlaces();renderMovePicked();renderAgenda();requestSequenceRender()}
+function renderDays(){$('days').innerHTML=data.days.map(d=>`<button data-day="${d}" class="${d===day?'selected':''}">${fmt(d)} <span class="tiny">${data.entries.filter(e=>e.day===d).length}</span></button>`).join('');$('dayHeading').textContent=`${day} 일정`;$('dayCount').textContent=entriesFor().length+'개 항목';$('newDate').value=day}
+function renderPlaces(){const items=visitList();for(const id of ['fromPlace','toPlace']){const sel=$(id),v=sel.value;sel.innerHTML='<option value="">장소 선택</option>'+items.map(x=>`<option value="${esc(x.id)}">${esc(x.name)} (${fmt(data.entries.find(e=>e.id===x.id)?.day)})</option>`).join('');sel.value=items.some(x=>x.id===v)?v:''}}
+function entryPoint(e){return e?.point&&Number.isFinite(Number(e.point.lat))&&Number.isFinite(Number(e.point.lon))?e.point:null}
+function endpoint(e,side){const direct=e?.[side+'Point'];if(direct&&Number.isFinite(Number(direct.lat))&&Number.isFinite(Number(direct.lon)))return {name:e[side+'Name']||'선택 장소',point:direct};return data.entries.find(x=>x.id===e?.[side])||null}
+function renderWaypoints(){
+ $('waypointList').innerHTML=waypoints.map((w,i)=>`<div class="waypoint-item"><strong>📍 경유지 ${i+1}</strong><div class="muted tiny" style="margin-top:4px">${w?esc(w.name)+' · '+Number(w.lat).toFixed(4)+', '+Number(w.lon).toFixed(4):'지도에서 위치를 지정해 주세요.'}</div><div class="flex"><button type="button" data-wp="find" data-index="${i}">🔎 지도 검색</button><button type="button" data-wp="up" data-index="${i}" ${i===0?'disabled':''}>↑</button><button type="button" data-wp="down" data-index="${i}" ${i===waypoints.length-1?'disabled':''}>↓</button><button type="button" data-wp="remove" data-index="${i}">삭제</button></div></div>`).join('');
+}
+function renderMovePicked(){const el=$('movePicked');const label=side=>{const p=movePoints[side];if(p)return esc(p.name)+' · '+Number(p.lat).toFixed(4)+', '+Number(p.lon).toFixed(4);const id=$(side==='from'?'fromPlace':'toPlace').value;const v=data.entries.find(e=>e.id===id);return v?esc(v.name):'미선택'};el.innerHTML='🚩 출발지: '+label('from')+'<div style="margin-top:5px">🏁 도착지: '+label('to')+'</div>';renderWaypoints();renderPreview()}
+function chooseTarget(target){searchTarget=target;setMode('move');$('searchTarget').hidden=false;const desc=target.startsWith('wp')?'경유지 '+(Number(target.slice(2))+1):target==='from'?'출발지':'도착지';$('searchTarget').textContent=desc+' 선택 중 · 아래 검색 결과를 누르거나 지도에서 원하는 위치를 클릭하세요.';$('searchInput').focus();$('searchInput').scrollIntoView({behavior:'smooth',block:'center'})}
+
+function renderAgenda(){const a=entriesFor();$('agenda').innerHTML=a.length?a.map(e=>{let move=e.kind==='move';const f=endpoint(e,'from'),t=endpoint(e,'to');let title=move?[e.fromPoint?e.fromName:(f?.name||e.fromName||'출발지'),...(Array.isArray(e.waypoints)?e.waypoints:[]).map(w=>w.name||'경유지'),e.toPoint?e.toName:(t?.name||e.toName||'도착지')].map(esc).join(' → '):esc(e.name);let canRoute=move&&entryPoint(f)&&entryPoint(t);return `<div class="entry ${move?'move':''}"><div class="entry-top"><strong>${esc(e.start)}–${esc(e.end)}</strong><span class="pill">${move?'이동':'방문'}</span></div><div style="margin-top:6px"><strong>${title}</strong></div>${e.memo?`<div class="sub">📝 ${esc(e.memo)}</div>`:''}${!move&&entryPoint(e)?`<div class="sub">📍 ${Number(e.point.lat).toFixed(5)}, ${Number(e.point.lon).toFixed(5)}</div>`:''}${!move&&e.address?`<div class="sub">🏠 ${esc(e.address)}</div>`:''}<div class="entry-actions"><button data-action="edit" data-id="${esc(e.id)}">수정</button><button data-action="up" data-id="${esc(e.id)}">지도에서 보기</button>${!move?`<button data-action="googleSearch" data-id="${esc(e.id)}">구글 지도 가게 찾기 ↗</button>${entryPoint(e)?`<button data-action="googleCoords" data-id="${esc(e.id)}">좌표 위치 보기 ↗</button>`:``}`:``}${canRoute?`<button data-action="route" data-id="${esc(e.id)}">구글 지도 길찾기 ↗</button>`:''}<button class="danger" data-action="del" data-id="${esc(e.id)}">삭제</button></div></div>`}).join(''):'<div class="empty">등록된 일정이 없습니다.<br>지도에서 장소를 선택한 뒤 일정을 추가하세요.</div>'}
+function setMode(m){mode=m;if(m==='visit'){$('searchTarget').hidden=true;searchTarget='visit'}$('visitFields').hidden=m!=='visit';$('moveFields').hidden=m!=='move';$('visitMode').classList.toggle('primary',m==='visit');$('moveMode').classList.toggle('primary',m==='move');$('formTitle').textContent=(editing?'일정 수정':'일정 추가')+' · '+(m==='visit'?'장소 방문':'장소 간 이동');$('saveEntry').textContent=editing?'수정 저장':'+ 일정에 추가';$('cancelEdit').hidden=!editing}
+function clearForm(){editing=null;picked=null;placeAddress='';movePoints={from:null,to:null};waypoints=[];searchTarget='visit';$('searchTarget').hidden=true;$('placeName').value='';$('memo').value='';$('placeCoord').textContent='위치 미선택 · 검색 결과를 선택하면 상호명·주소·좌표가 함께 저장됩니다.';$('start').value='09:00';$('end').value='10:00';setMode('visit');renderPreview();$('selectedBox').hidden=true;if(pickMarker&&map){pickMarker.remove();pickMarker=null}}
+function saveEntry(){let start=$('start').value,end=$('end').value;if(!start||!end||end<=start)return alert('종료 시간을 시작 시간보다 늦게 지정하세요.');const before=data.entries.find(x=>x.id===editing),entry={id:editing||uid(),day,start,end,kind:mode,memo:$('memo').value.trim()};if(mode==='visit'){entry.name=$('placeName').value.trim();entry.point=picked;entry.address=placeAddress;if(!entry.name)return alert('방문 장소명을 입력하세요.')}else{entry.from=movePoints.from?null:$('fromPlace').value;entry.to=movePoints.to?null:$('toPlace').value;entry.fromPoint=movePoints.from?{lat:movePoints.from.lat,lon:movePoints.from.lon}:null;entry.toPoint=movePoints.to?{lat:movePoints.to.lat,lon:movePoints.to.lon}:null;const f=endpoint(entry,'from'),t=endpoint(entry,'to');entry.fromName=movePoints.from?.name||f?.name||'';entry.toName=movePoints.to?.name||t?.name||'';entry.fromAddress=movePoints.from?.address||f?.address||'';entry.toAddress=movePoints.to?.address||t?.address||'';if(waypoints.some(w=>!w))return alert('추가한 경유지의 위치를 모두 지정하거나 비어 있는 경유지를 삭제하세요.');entry.waypoints=waypoints.map(w=>({...w}));if(!entryPoint(f)||!entryPoint(t))return alert('출발지와 도착지를 지도에서 검색 또는 선택해 주세요.');if(distanceKm(Number(f.point.lat),Number(f.point.lon),Number(t.point.lat),Number(t.point.lon))<0.02)return alert('출발지와 도착지를 서로 다른 위치로 지정하세요.')}if(before)data.entries=data.entries.map(x=>x.id===editing?entry:x);else data.entries.push(entry);persist();const focus=e=>{if(!map||e.kind!=='move')return;const f=endpoint(e,'from'),t=endpoint(e,'to');const pts=[f?.point,...(e.waypoints||[]),t?.point].filter(Boolean);if(pts.length>1)map.fitBounds([[Math.min(...pts.map(p=>Number(p.lon))),Math.min(...pts.map(p=>Number(p.lat)))],[Math.max(...pts.map(p=>Number(p.lon))),Math.max(...pts.map(p=>Number(p.lat)))]],{padding:75,maxZoom:15,duration:550})};clearForm();render();focus(entry)}
+function editEntry(id){const e=data.entries.find(x=>x.id===id);if(!e)return;day=e.day;editing=id;picked=e.point||null;placeAddress=String(e.address||'');$('start').value=e.start;$('end').value=e.end;$('memo').value=e.memo||'';setMode(e.kind);renderDays();renderPlaces();if(e.kind==='visit'){$('placeName').value=e.name;$('placeCoord').textContent=picked?`선택 좌표: ${Number(picked.lat).toFixed(5)}, ${Number(picked.lon).toFixed(5)}`:'지도에서 위치를 지정할 수 있습니다.'}else{$('fromPlace').value=e.from||'';$('toPlace').value=e.to||'';movePoints={from:e.fromPoint?{...e.fromPoint,name:e.fromName,address:e.fromAddress||''}:null,to:e.toPoint?{...e.toPoint,name:e.toName,address:e.toAddress||''}:null};waypoints=(e.waypoints||[]).map(w=>({...w}));renderMovePicked()}window.scrollTo({top:0,behavior:'smooth'})}
+function showPicked(lat,lon,name,address=''){if(mode==='move'&&searchTarget!=='visit'){const point={lat:Number(lat),lon:Number(lon),address:String(address||''),name:name||`선택 위치 (${Number(lat).toFixed(4)}, ${Number(lon).toFixed(4)})`};if(searchTarget.startsWith('wp')){const i=Number(searchTarget.slice(2));if(Number.isInteger(i)&&i>=0&&i<waypoints.length)waypoints[i]=point;}else{movePoints[searchTarget]=point;$(searchTarget==='from'?'fromPlace':'toPlace').value='';}renderMovePicked();$('searchTarget').textContent='위치 지정 완료 · 다음 장소를 선택하거나 이동 일정을 저장하세요.';if(map)map.panTo([lon,lat]);return;}picked={lat:Number(lat),lon:Number(lon)};placeAddress=String(address||'');if(mode!=='visit')setMode('visit');$('placeName').value=name||$('placeName').value||`선택 위치 (${lat.toFixed(4)}, ${lon.toFixed(4)})`;$('placeCoord').textContent=`선택 좌표: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;$('selectedBox').hidden=false;$('selectedBox').innerHTML=`<b>📍 선택한 장소</b><div style="margin:6px 0">${esc($('placeName').value)}</div>${placeAddress?`<div class="muted">${esc(placeAddress)}</div>`:''}<div class="muted">${lat.toFixed(5)}, ${lon.toFixed(5)}</div><div style="margin-top:7px"><button id="usePlace">일정 입력란으로 이동</button></div>`;$('usePlace').onclick=()=>$('placeName').scrollIntoView({behavior:'smooth',block:'center'});if(map){if(pickMarker)pickMarker.remove();const el=document.createElement('div');el.style.cssText='width:19px;height:19px;border:3px solid #bc4a28;background:#ffc39d;border-radius:50%;box-shadow:0 1px 6px #5559';pickMarker=new MapMarker({element:el}).setLngLat([lon,lat]).addTo(map);map.panTo([lon,lat])}}
+// OpenFreeMap vector basemap: label fields prefer Korean and fall back to source names when untranslated.
+function koreanLabels(){if(!map)return;const layers=map.getStyle()?.layers||[];for(const l of layers){if(l.type!=='symbol'||!l.layout||!l.layout['text-field'])continue;const field=l.layout['text-field'];const raw=JSON.stringify(field);if(!/name|label/i.test(raw))continue;try{map.setLayoutProperty(l.id,'text-field',['coalesce',['get','name:ko'],['get','name:en'],['get','name'],field]);}catch(e){console.warn('레이블 변경 건너뜀',l.id,e)}}}
+// Leaflet raster fallback for mobile devices or blocked vector-map resources.
+let leafletFallback=false, leafletMap=null, leafletSources={}, leafletLayers={};
+class MapPopup{
+ constructor(options={}){this.html='';return this}
+ setHTML(html){this.html=html;return this}
+ setText(str){this.html=esc(str);return this}
+}
+class MapMarker{
+ constructor(options={}){this.element=options.element||null;this.pos=[141.3545,43.0618];this.popup=null;this.marker=null;}
+ setLngLat(pos){this.pos=pos;return this}
+ setPopup(popup){this.popup=popup;return this}
+ addTo(target){
+  if(!leafletFallback){this.marker=new maplibregl.Marker({element:this.element,anchor:'center'}).setLngLat(this.pos);if(this.popup)this.marker.setPopup(new maplibregl.Popup({offset:16}).setHTML(this.popup.html));this.marker.addTo(target);return this;}
+  if(!window.L||!leafletMap)return this;
+  const node=this.element||document.createElement('div');
+  const icon=L.divIcon({html:node.outerHTML,className:'mobile-map-marker',iconSize:null,iconAnchor:node.classList.contains('seq-grouped')?[36,16]:[15,15]});
+  this.marker=L.marker([this.pos[1],this.pos[0]],{icon}).addTo(leafletMap);
+  if(this.popup)this.marker.bindPopup(this.popup.html);
+  return this;
+ }
+ remove(){if(this.marker)this.marker.remove();return this}
+}
+function mobileFallback(reason){
+ if(leafletFallback)return;
+ if(!window.L){const a=$('mapAlert');a.style.display='block';$('mapAlertText').textContent='모바일 대체 지도 라이브러리도 불러오지 못했습니다. 인터넷 연결, 브라우저 설정 또는 외부 CDN 접근을 확인하세요. ('+reason+')';return;}
+ try{
+  let center=[141.3545,43.0618],zoom=12;
+  if(map){try{const c=map.getCenter();center=[c.lng,c.lat];zoom=map.getZoom()}catch(e){}try{map.remove()}catch(e){}}
+  map=null;document.getElementById('map').innerHTML='';
+  leafletFallback=true;leafletSources={};leafletLayers={};
+  leafletMap=L.map('map',{zoomControl:true,preferCanvas:true}).setView([center[1],center[0]],zoom);
+  const raster=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',crossOrigin:true});
+  let tileOK=false;
+  raster.on('tileload',()=>{tileOK=true;$('mapAlert').style.display='none'});
+  raster.on('tileerror',()=>{if(!tileOK){$('mapAlert').style.display='block';$('mapAlertText').textContent='모바일 대체 지도 타일 서버에서도 연결 오류가 발생했습니다. 웹서버 주소(https)로 열거나 인터넷 연결을 확인해 주세요.'}});
+  raster.addTo(leafletMap);
+  map={
+    getCenter:()=>({lat:leafletMap.getCenter().lat,lng:leafletMap.getCenter().lng}),
+    getZoom:()=>leafletMap.getZoom(),
+    isStyleLoaded:()=>true,
+    getStyle:()=>({layers:[]}),
+    on:(name,callback)=>{if(name==='click')leafletMap.on('click',e=>callback({lngLat:{lat:e.latlng.lat,lng:e.latlng.lng}}));return map},
+    panTo:pos=>leafletMap.panTo([pos[1],pos[0]]),
+    flyTo:opts=>leafletMap.flyTo([opts.center[1],opts.center[0]],opts.zoom||leafletMap.getZoom()),
+    fitBounds:(bounds,opts={})=>leafletMap.fitBounds([[bounds[0][1],bounds[0][0]],[bounds[1][1],bounds[1][0]]],{padding:opts.padding||[25,25],maxZoom:opts.maxZoom||16}),
+    getLayer:id=>leafletLayers[id],getSource:id=>leafletSources[id],
+    addSource:(id,source)=>{leafletSources[id]=source},
+    addLayer:(layer)=>{const geo=leafletSources[layer.source]?.data;if(!geo)return;const paint=layer.paint||{};const shape=L.geoJSON(geo,{style:{color:paint['line-color']||'#2375bd',weight:paint['line-width']||4,opacity:paint['line-opacity']||1,dashArray:paint['line-dasharray']?'7 6':null}}).addTo(leafletMap);leafletLayers[layer.id]=shape},
+    removeLayer:id=>{leafletLayers[id]?.remove();delete leafletLayers[id]},
+    removeSource:id=>{delete leafletSources[id]},
+    setLayoutProperty:()=>{}
+  };
+  map.on('click',e=>showPicked(e.lngLat.lat,e.lngLat.lng,''));
+  if(leafletMap)leafletMap.on('zoomend',()=>requestSequenceRender());
+  $('mapAlert').style.display='none';
+  const hint=document.createElement('div');hint.id='mobileMapHint';hint.className='notice';hint.style.margin='5px 12px';hint.textContent='모바일 호환 지도 사용 중 · 한국어 지명이 없는 경우 원어로 표시될 수 있습니다.';
+  const legend=document.querySelector('.seq-legend');if(legend&&!document.getElementById('mobileMapHint'))legend.appendChild(hint);
+  setTimeout(()=>{leafletMap.invalidateSize();requestSequenceRender();renderPreview()},150);
+ }catch(e){$('mapAlert').style.display='block';$('mapAlertText').textContent='대체 지도를 시작하지 못했습니다: '+e.message;console.error(e)}
+}
+function createMap(){
+ const alertBox=$('mapAlert'),alertText=$('mapAlertText');
+ if(!window.maplibregl){mobileFallback('MapLibre 라이브러리 불러오기 실패');return;}
+ let loaded=false, fatalCount=0, failed=false;
+ const showError=message=>{if(!loaded&&!leafletFallback){alertBox.style.display='block';alertText.textContent=message}};
+ try{
+  map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:[141.3545,43.0618],zoom:12,locale:{'NavigationControl.ZoomIn':'확대','NavigationControl.ZoomOut':'축소'}});
+  map.addControl(new maplibregl.NavigationControl(),'top-right');
+  map.on('load',()=>{if(leafletFallback)return;loaded=true;fatalCount=0;alertBox.style.display='none';try{koreanLabels()}catch(e){console.warn('한국어 레이블 설정',e)}requestSequenceRender();renderPreview()});
+  map.on('styledata',()=>{if(loaded&&!leafletFallback&&sequenceDirty&&map&&map.isStyleLoaded())requestSequenceRender()});
+  map.on('idle',()=>{if(sequenceDirty&&loaded&&!leafletFallback)requestSequenceRender()});
+  map.on('error',e=>{const message=String(e?.error?.message||e?.error||'알 수 없는 오류');console.warn('지도 리소스 오류:',message);if(loaded||leafletFallback)return;fatalCount++;if(fatalCount>=3&&!failed){failed=true;mobileFallback(message)}});
+  map.on('click',e=>showPicked(e.lngLat.lat,e.lngLat.lng,''));
+  map.on('zoomend',()=>requestSequenceRender());
+  setTimeout(()=>{if(!loaded&&!leafletFallback)mobileFallback('벡터 지도 10초 이상 미완료')},10000);
+ }catch(e){showError('벡터 지도 오류: '+e.message);mobileFallback(e.message)}
+}
+
+function sequenceNodes(){
+ const nodes=[];entriesFor().forEach((e,i)=>{
+  const n=i+1;
+  if(e.kind==='visit'&&entryPoint(e))nodes.push({label:String(n),kind:'visit',name:e.name||'방문 장소',time:e.start,point:e.point,entry:e});
+  else if(e.kind==='move'){
+   const f=endpoint(e,'from'),t=endpoint(e,'to');
+   if(entryPoint(f))nodes.push({label:n+'-1',kind:'move',name:f.name||e.fromName||'출발',time:e.start,point:f.point,entry:e});
+   (e.waypoints||[]).forEach((w,j)=>{if(Number.isFinite(Number(w.lat))&&Number.isFinite(Number(w.lon)))nodes.push({label:n+'-'+(j+2),kind:'move',name:w.name||'경유지',time:e.start+'~'+e.end,point:w,entry:e})});
+   if(entryPoint(t))nodes.push({label:n+'-'+((e.waypoints||[]).length+2),kind:'move',name:t.name||e.toName||'도착',time:e.end,point:t.point,entry:e});
+  }
+ });return nodes;
+}
+// Use geographic endpoints for lines so map zoom cannot distort their length.
+// The chevron is fixed-size HTML at the destination and offset in screen pixels.
+let directionMarkers=[];
+function screenPoint(coord){
+ if(leafletFallback && leafletMap){const p=leafletMap.latLngToContainerPoint([coord[1],coord[0]]);return {x:p.x,y:p.y};}
+ const p=map.project(coord);return {x:p.x,y:p.y};
+}
+function routeArrow(angle,color){
+ const el=document.createElement('div');
+ el.className='route-arrow';el.setAttribute('aria-label','이동 방향');
+ el.style.cssText='width:22px;height:22px;display:flex;align-items:center;justify-content:center;background:transparent;border:0;pointer-events:none;overflow:visible';
+ // Rotate around destination. The fixed 22px offset never scales with map zoom.
+ el.innerHTML='<svg width="22" height="22" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg" style="display:block;overflow:visible;transform:rotate('+angle+'deg) translateX(-23px)"><path d="M5 3 L14 11 L5 19" fill="none" stroke="'+color+'" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+ return el;
+}
+
+function renderMap(){
+ if(!map||!map.isStyleLoaded())return false;
+ markers.forEach(m=>m.remove());
+ directionMarkers.forEach(m=>m.remove());directionMarkers=[];
+ lines.forEach(id=>{if(map.getLayer(id))map.removeLayer(id);if(map.getSource(id))map.removeSource(id)});
+ markers=[];lines=[];
+ const nodes=sequenceNodes();
+ // Connect the entire day's sequence, including visits and movement endpoints.
+ // This is a straight-line visualization, NOT a street-level walking route.
+ for(let i=1;i<nodes.length;i++){
+  const a=nodes[i-1],b=nodes[i];const id='sequence-'+i;
+  const coords=[[Number(a.point.lon),Number(a.point.lat)],[Number(b.point.lon),Number(b.point.lat)]];
+  if(distanceKm(coords[0][1],coords[0][0],coords[1][1],coords[1][0])<0.005)continue;
+  // Full geographic line is stable throughout zoom animations. The arrow tip
+  // is a fixed-size screen overlay just before the destination marker.
+  const screenA=screenPoint(coords[0]),screenB=screenPoint(coords[1]);
+  const dx=screenB.x-screenA.x,dy=screenB.y-screenA.y;
+  const len=Math.hypot(dx,dy);
+  const isMove=a.entry===b.entry&&a.kind==='move';
+  const color=isMove?'#dc8a16':'#2375bd';
+  map.addSource(id,{type:'geojson',data:{type:'Feature',properties:{},geometry:{type:'LineString',coordinates:coords}}});
+  map.addLayer({id,type:'line',source:id,paint:{'line-color':color,'line-width':4,'line-opacity':.85}});
+  lines.push(id);
+  if(len>=35){
+   const angle=Math.atan2(dy,dx)*180/Math.PI;
+   const arrow=new MapMarker({element:routeArrow(angle,color)}).setLngLat(coords[1]).addTo(map);
+   directionMarkers.push(arrow);
+  }
+ }
+  // Merge coincident itinerary points so later visits cannot cover earlier markers.
+  // Use a small tolerance for slight coordinate differences from different search providers.
+  const groups=[];
+  for(const node of nodes){
+    const lat=Number(node.point.lat),lon=Number(node.point.lon);
+    let group=groups.find(g=>distanceKm(g.lat,g.lon,lat,lon)<0.015);
+    if(!group){group={lat,lon,nodes:[]};groups.push(group)}
+    group.nodes.push(node);
+  }
+  for(const group of groups){
+    const shared=group.nodes.length>1;
+    const el=document.createElement('div');
+    const allMove=group.nodes.every(n=>n.kind==='move');
+    el.className='seq-marker '+(allMove?'seq-move':'seq-visit')+(shared?' seq-grouped':'');
+    if(shared){
+      group.nodes.forEach(n=>{const s=document.createElement('span');s.className='group-number '+(n.kind==='move'?'group-move':'group-visit');s.textContent=n.label;el.appendChild(s)})
+    }else{el.textContent=group.nodes[0].label}
+    el.title=group.nodes.map(n=>n.label+' · '+n.time+' · '+n.name).join(' / ');
+    const content=group.nodes.map(n=>'<div style="padding:5px 0;border-bottom:1px solid #e5e7eb"><b>'+esc(n.label)+' · '+esc(n.name)+'</b><div>'+esc(n.time)+' · '+(n.kind==='move'?'이동 지점':'방문 장소')+'</div></div>').join('');
+    const mk=new MapMarker({element:el,anchor:'center'}).setLngLat([group.lon,group.lat])
+      .setPopup(new MapPopup({offset:18}).setHTML(content)).addTo(map);
+    markers.push(mk);
+  }
+ const info=$('sequenceInfo');if(info)info.textContent=nodes.length?nodes.map(n=>n.label+' '+n.name).join(' → '):'등록된 좌표가 있는 일정을 추가하면 동선이 표시됩니다.';
+ renderPreview();
+ return true;
+}
+function renderPreview(){
+ if(!map)return;
+ previewMarkers.forEach(m=>m.remove());previewMarkers=[];
+ previewLines.forEach(id=>{try{if(map.getLayer(id))map.removeLayer(id);if(map.getSource(id))map.removeSource(id)}catch(e){}});previewLines=[];
+ if(mode!=='move')return;
+ const asPoint=(side)=>{const p=movePoints[side];if(p)return p;const e=data.entries.find(x=>x.id===$(side==='from'?'fromPlace':'toPlace').value);return e&&entryPoint(e)?{...e.point,name:e.name}:null};
+ const f=asPoint('from'),t=asPoint('to');
+ const pts=[f,...waypoints,t].filter(p=>p&&Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lon)));
+ const seq=[...(f?[{p:f,label:'출발'}]:[]),...waypoints.map((p,i)=>({p,label:'경유 '+(i+1)})).filter(x=>x.p),...(t?[{p:t,label:'도착'}]:[])];
+ for(const {p,label} of seq){const el=document.createElement('div');el.className='seq-marker seq-move';el.textContent=label;el.style.background='#b35414';el.title=(p.name||label);previewMarkers.push(new MapMarker({element:el,anchor:'center'}).setLngLat([Number(p.lon),Number(p.lat)]).setPopup(new MapPopup({offset:16}).setText(label+' · '+(p.name||''))).addTo(map));}
+ if(map.isStyleLoaded()&&seq.length>1){const id='editing-preview-route';const coordinates=seq.map(x=>[Number(x.p.lon),Number(x.p.lat)]);try{map.addSource(id,{type:'geojson',data:{type:'Feature',geometry:{type:'LineString',coordinates},properties:{}}});map.addLayer({id,type:'line',source:id,paint:{'line-color':'#c05213','line-width':5,'line-opacity':.9,'line-dasharray':[2,1.5]}});previewLines.push(id)}catch(e){console.warn('미리보기 경로 오류',e)}}
+}
+function searchOrigin(){const c=map&&typeof map.getCenter==='function'?map.getCenter():{lat:43.0618,lng:141.3545};return {lat:Number(c.lat),lon:Number(c.lng)}}
+function distanceKm(a,b,c,d){const R=6371,rad=x=>x*Math.PI/180;const x=rad(c-a),y=rad(d-b);const h=Math.sin(x/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(y/2)**2;return 2*R*Math.asin(Math.min(1,Math.sqrt(h)))}
+function distanceLabel(km){return km<1?Math.round(km*1000)+'m':km.toFixed(1)+'km'}
+const SEARCH_RADIUS_KM=30;
+function localBoundingBox(origin){const dLat=SEARCH_RADIUS_KM/111.32,dLon=SEARCH_RADIUS_KM/(111.32*Math.max(.2,Math.cos(origin.lat*Math.PI/180)));return [origin.lon-dLon,origin.lat-dLat,origin.lon+dLon,origin.lat+dLat].map(x=>x.toFixed(6))}
+function normalizePlaces(places,origin){
+ const unique=[];
+ const sorted=places.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon)).map(p=>({...p,distance:distanceKm(origin.lat,origin.lon,p.lat,p.lon)})).sort((a,b)=>a.distance-b.distance);
+ for(const p of sorted){const k=(p.name||'').normalize('NFKC').trim().toLocaleLowerCase();if(unique.some(x=>x.name.normalize('NFKC').trim().toLocaleLowerCase()===k&&distanceKm(x.lat,x.lon,p.lat,p.lon)<.15))continue;unique.push(p)}
+ return unique.slice(0,15);
+}
+// A Google Maps link can preserve a POI that has not been indexed in OpenStreetMap.
+// Short links normally cannot be resolved from a file:// page due to CORS redirects.
+const VERIFIED_GOOGLE_PLACES=[{match:['덴','덴 재패니즈 뷔페다이닝','den japanese buffet dining','https://maps.app.goo.gl/yfLXAGzCJUtm4fDT8'],name:'덴 재패니즈 뷔페다이닝',lat:43.0543562,lon:141.3513301,detail:'삿포로시 주오구 · 제공된 Google 지도 공유 링크의 위치',url:'https://maps.app.goo.gl/yfLXAGzCJUtm4fDT8'}];
+function googleUrlPlace(q){
+ let u;try{u=new URL(q)}catch{return null}
+ if(!/(^|\.)google\.[a-z.]+$|(^|\.)google\.com$|(^|\.)maps\.app\.goo\.gl$/.test(u.hostname))return null;
+ let name='구글 지도에서 선택한 장소';let lat,lon;
+ const fromPath=u.pathname.match(/\/maps\/place\/([^/]+)/);
+ if(fromPath){try{name=decodeURIComponent(fromPath[1]).replace(/\+/g,' ')}catch{}}
+ const blob=decodeURIComponent(u.href);
+ let m=blob.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+ if(!m)m=blob.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+ if(!m)m=blob.match(/[?&](?:query|q)=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+ if(m){lat=Number(m[1]);lon=Number(m[2])}
+ if(!Number.isFinite(lat)||!Number.isFinite(lon))return {unsupported:true};
+ return {name,lat,lon,detail:'Google 지도 링크에서 추출한 좌표 (장소 위치 확인 필요)'};
+}
+function queryVariants(q){
+ const clean=q.replace(/\s+/g,'').toLowerCase();
+ if(['신치토세공항','신치토세국제공항','뉴치토세공항','치토세공항'].includes(clean))return [q,'New Chitose Airport','新千歳空港'];
+ return [q];
+}
+async function photonPlaces(q,origin,bbox){
+ const params=new URLSearchParams({q,lang:'ko',limit:'30',lat:String(origin.lat),lon:String(origin.lon),zoom:'11'});
+ if(bbox)params.set('bbox',bbox.join(','));
+ const response=await fetch('https://photon.komoot.io/api/?'+params.toString(),{headers:{Accept:'application/json'}});
+ if(!response.ok)throw new Error('Photon '+response.status);
+ const result=await response.json();
+ return (result.features||[]).filter(f=>f.geometry&&Array.isArray(f.geometry.coordinates)).map(f=>{const a=f.properties||{},c=f.geometry.coordinates;return {lat:Number(c[1]),lon:Number(c[0]),name:a.name||a.street||a.city||'이름 없는 장소',detail:[a.city,a.district,a.state,a.country].filter(Boolean).join(' · ')}});
+}
+async function nominatimPlaces(q,origin,bbox,restrict){
+ const params=new URLSearchParams({format:'jsonv2',limit:'30','accept-language':'ko',q,countrycodes:'jp',viewbox:[bbox[0],bbox[3],bbox[2],bbox[1]].join(','),bounded:restrict?'1':'0'});
+ const response=await fetch('https://nominatim.openstreetmap.org/search?'+params.toString(),{headers:{Accept:'application/json'}});
+ if(!response.ok)throw new Error('Nominatim '+response.status);
+ return (await response.json()).map(p=>({lat:Number(p.lat),lon:Number(p.lon),name:p.name||p.display_name.split(',')[0],detail:p.display_name}));
+}
+async function searchPlaces(ev){
+ ev.preventDefault();const q=$('searchInput').value.trim();if(!q)return;
+ const now=Date.now();if(now-lastSearchAt<1200)return alert('검색은 1초 이상 간격을 두고 사용해주세요.');lastSearchAt=now;
+ const origin=searchOrigin(),bbox=localBoundingBox(origin),out=$('searchResults');
+ const key=q.normalize('NFKC').trim().toLocaleLowerCase();
+ const verified=VERIFIED_GOOGLE_PLACES.find(x=>x.match.some(a=>a.toLocaleLowerCase()===key));
+ const linked=verified||googleUrlPlace(q);
+ if(linked){
+  if(linked.unsupported){out.innerHTML='<div class="notice">이 주소는 단축 링크여서 위치 좌표를 직접 읽을 수 없습니다. 구글 지도에서 공유 링크를 연 뒤 주소창의 긴 maps.google.com 또는 google.com/maps/place 주소를 복사해 넣어주세요. 또는 이 지도에서 원하는 지점을 클릭해 선택할 수 있습니다.</div>';return;}
+  const distance=distanceKm(origin.lat,origin.lon,linked.lat,linked.lon);
+  out.innerHTML=`<div class="muted tiny" style="padding:7px 0">구글 지도 위치 정보 · 지도 중심에서 ${distanceLabel(distance)}</div><button type="button" class="result" id="linkedPlace">📍 <b>${esc(linked.name)}</b> <span class="pill">${distanceLabel(distance)}</span><div class="muted tiny">${esc(linked.detail)}</div></button>`;
+  $('linkedPlace').onclick=()=>{showPicked(linked.lat,linked.lon,linked.name,linked.detail);if(map)map.flyTo({center:[linked.lon,linked.lat],zoom:16});out.innerHTML=''};
+  return;
+ }
+
+ out.textContent='현재 지도 주변을 검색하고 있습니다...';
+ let list=[],backend='',problems=[];
+ const variants=queryVariants(q);
+ // First search locally; preserve local distance sorting, but do not hide a known destination outside 30 km.
+ try{list=normalizePlaces(await photonPlaces(q,origin,bbox),origin).filter(p=>p.distance<=SEARCH_RADIUS_KM);backend='Photon (주변)'}catch(e){problems.push(e)}
+ if(!list.length){try{list=normalizePlaces(await nominatimPlaces(q,origin,bbox,true),origin).filter(p=>p.distance<=SEARCH_RADIUS_KM);backend='Nominatim (주변)'}catch(e){problems.push(e)}}
+ // Exact destinations can be farther away. Broaden to Japan and keep nearest-first ordering.
+ if(!list.length){out.textContent='주변에 결과가 없어 일본 전체에서 장소를 찾고 있습니다...';
+  for(const term of variants){
+   try{list=normalizePlaces(await photonPlaces(term,origin,null),origin).filter(p=>p.lat>=24&&p.lat<=46.5&&p.lon>=123&&p.lon<=146);if(list.length){backend='Photon (일본 확대 검색)';break}}catch(e){problems.push(e)}
+   try{list=normalizePlaces(await nominatimPlaces(term,origin,bbox,false),origin);if(list.length){backend='Nominatim (일본 확대 검색)';break}}catch(e){problems.push(e)}
+  }
+ }
+ // Name variants help Korean spellings for specific landmarks. Do not replace a nearby matching result.
+ if(!list.length&&problems.length)console.warn('Place search service errors:',problems);
+ out.innerHTML=list.length?`<div class="muted tiny" style="padding:7px 0">${list.length}개 후보 · ${backend} · 지도 중심에서 가까운 순 (직선거리)${list[0].distance>SEARCH_RADIUS_KM?' · 주변 결과가 없어 검색 범위를 확장했습니다':''}</div>`+list.map((p,i)=>`<button type="button" class="result" data-result="${i}">📍 <b>${esc(p.name)}</b> <span class="pill">${distanceLabel(p.distance)}</span>${p.detail?`<div class="muted tiny">${esc(p.detail)}</div>`:''}</button>`).join(''):`<div class="notice">검색 결과를 찾지 못했습니다.${problems.length?' 일부 검색 서비스가 응답하지 않았을 수 있습니다.':''} 일본어나 영어 장소명으로도 검색해 보세요.</div>`;
+ out.querySelectorAll('[data-result]').forEach(btn=>btn.onclick=()=>{const p=list[Number(btn.dataset.result)];showPicked(p.lat,p.lon,p.name,p.detail||'');if(map)map.flyTo({center:[p.lon,p.lat],zoom:16});out.innerHTML=''})
+}
+function googlePlaceSearch(e){
+ if(e.kind!=='visit')return;
+ const name=String(e.name||'').trim();
+ const p=entryPoint(e);
+ if(!name&&!p)return alert('검색할 장소명 또는 좌표가 없습니다.');
+ // Use the address captured from the selected search result rather than a hardcoded city.
+ // Without a Google Place ID, Google may still show alternative businesses.
+ const address=String(e.address||'').trim();
+ const query=name ? [name,address||'일본'].join(', ') : `${Number(p.lat)},${Number(p.lon)}`;
+ const url='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(query)+'&hl=ko';
+ window.open(url,'_blank','noopener');
+}
+function googleCoordinateSearch(e){
+ const p=entryPoint(e);if(!p)return alert('저장된 좌표가 없습니다.');
+ const query=`${Number(p.lat)},${Number(p.lon)}`;
+ window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(query)+'&hl=ko','_blank','noopener');
+}
+function directions(e){const f=endpoint(e,'from'),t=endpoint(e,'to');if(!entryPoint(f)||!entryPoint(t))return alert('출발지와 도착지의 좌표가 필요합니다.');const o=`${f.point.lat},${f.point.lon}`,d=`${t.point.lat},${t.point.lon}`;const w=(e.waypoints||[]).map(p=>`${p.lat},${p.lon}`);const qs='https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(o)+'&destination='+encodeURIComponent(d)+(w.length?'&waypoints='+encodeURIComponent(w.join('|')):'')+'&travelmode='+(w.length?'driving':'transit');window.open(qs,'_blank','noopener')}
+$('days').onclick=e=>{const b=e.target.closest('[data-day]');if(!b)return;day=b.dataset.day;clearForm();render()};$('addDay').onclick=()=>{const d=$('newDate').value;if(!d)return alert('날짜를 선택하세요.');if(!data.days.includes(d))data.days.push(d);data.days.sort();day=d;persist();clearForm();render()};
+$('renameDay').onclick=()=>{
+ const oldDay=day;
+ const newDay=$('newDate').value;
+ if(!newDay||!/^\d{4}-\d{2}-\d{2}$/.test(newDay))return alert('변경할 날짜를 달력에서 선택해 주세요.');
+ if(newDay===oldDay)return alert('현재 날짜와 같습니다. 먼저 달력에서 변경할 날짜를 선택하세요.');
+ const count=data.entries.filter(e=>e.day===oldDay).length;
+ const exists=data.days.includes(newDay);
+ const message=exists
+   ? `${oldDay}의 일정 ${count}개를 이미 존재하는 ${newDay} 날짜에 합칠까요?\n기존 ${newDay} 일정도 유지됩니다.`
+   : `${oldDay} 날짜를 ${newDay}(으)로 변경하고 일정 ${count}개를 함께 옮길까요?`;
+ if(!confirm(message)){$('newDate').value=oldDay;return;}
+ data.entries.forEach(e=>{if(e.day===oldDay)e.day=newDay});
+ data.days=data.days.filter(d=>d!==oldDay);
+ if(!data.days.includes(newDay))data.days.push(newDay);
+ data.days.sort();day=newDay;
+ persist();clearForm();render();
+};$('visitMode').onclick=()=>{editing=null;setMode('visit')};$('moveMode').onclick=()=>{editing=null;movePoints={from:null,to:null};waypoints=[];setMode('move');renderMovePicked()};$('addWaypoint').onclick=()=>{setMode('move');waypoints.push(null);renderMovePicked();chooseTarget('wp'+(waypoints.length-1))};$('waypointList').onclick=e=>{const b=e.target.closest('[data-wp]');if(!b)return;const i=Number(b.dataset.index),action=b.dataset.wp;if(action==='find')chooseTarget('wp'+i);if(action==='remove'){waypoints.splice(i,1);searchTarget='visit';$('searchTarget').hidden=true;renderMovePicked()}if(action==='up'&&i>0){[waypoints[i-1],waypoints[i]]=[waypoints[i],waypoints[i-1]];renderMovePicked()}if(action==='down'&&i<waypoints.length-1){[waypoints[i+1],waypoints[i]]=[waypoints[i],waypoints[i+1]];renderMovePicked()}};$('findFrom').onclick=()=>chooseTarget('from');$('findTo').onclick=()=>chooseTarget('to');for(const side of ['from','to'])$(side==='from'?'fromPlace':'toPlace').onchange=()=>{movePoints[side]=null;renderMovePicked()};$('saveEntry').onclick=saveEntry;$('cancelEdit').onclick=()=>{clearForm();render()};$('searchForm').onsubmit=searchPlaces;$('agenda').onclick=e=>{const b=e.target.closest('[data-action]');if(!b)return;const item=data.entries.find(x=>x.id===b.dataset.id);if(!item)return;const action=b.dataset.action;if(action==='edit')editEntry(item.id);if(action==='del'){if(!confirm('이 일정을 삭제할까요?'))return;data.entries=data.entries.filter(x=>x.id!==item.id);persist();render()}if(action==='route')directions(item);if(action==='googleSearch')googlePlaceSearch(item);if(action==='googleCoords')googleCoordinateSearch(item);if(action==='up'){if(item.kind==='visit'&&entryPoint(item)&&map)map.flyTo({center:[Number(item.point.lon),Number(item.point.lat)],zoom:16});else if(item.kind==='move'){const f=endpoint(item,'from'),t=endpoint(item,'to');if(entryPoint(f)&&entryPoint(t)&&map){const pts=[f.point,...(item.waypoints||[]),t.point];map.fitBounds([[Math.min(...pts.map(p=>Number(p.lon))),Math.min(...pts.map(p=>Number(p.lat)))],[Math.max(...pts.map(p=>Number(p.lon))),Math.max(...pts.map(p=>Number(p.lat)))]],{padding:45})}}}};
+$('exportBtn').onclick=()=>{const file=new Blob([JSON.stringify({...data,version:1,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download='삿포로_여행일정_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),500)};$('importBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;try{const incoming=normalize(JSON.parse(await file.text()));if(!confirm('현재 브라우저의 일정을 불러온 파일의 내용으로 교체할까요? 기존 일정은 파일로 먼저 저장해 두는 것이 안전합니다.'))return;data=incoming;if(!data.days.length)throw Error('여행 날짜가 없는 파일입니다.');day=data.days[0];persist();clearForm();render();alert('일정을 불러왔습니다.')}catch(err){alert('일정을 불러오지 못했습니다: '+err.message)}finally{e.target.value=''}};
+$('resetBtn').onclick=()=>{if(!confirm('모든 일정을 삭제하고 새로 시작할까요? 되돌리려면 미리 파일로 저장해야 합니다.'))return;data={days:[day],entries:[]};persist();clearForm();render()};
+// Responsive mobile navigation and collapsible itinerary editor.
+function setupMobileUI(){
+ const layout=document.querySelector('.layout');
+ const first=document.querySelector('.layout > section.panel:first-child');
+ const pad=first?.querySelector('.pad');
+ const heading=$('formTitle');
+ const sep=pad?.querySelector('.section-sep');
+ const foot=pad?.querySelector('.form-foot');
+ if(!layout||!sep||!foot||!heading)return;
+ const toggle=document.createElement('button');toggle.className='mobile-editor-toggle';toggle.type='button';toggle.id='mobileEditorToggle';
+ const editor=document.createElement('div');editor.className='mobile-editor-body';editor.id='mobileEditorBody';
+ sep.parentNode.insertBefore(toggle,sep);
+ sep.parentNode.insertBefore(editor,sep);
+ let n=sep;
+ while(n){const next=n.nextSibling;editor.appendChild(n);if(n===foot)break;n=next}
+ const isMobile=()=>window.matchMedia('(max-width:950px)').matches;
+ function editorState(open){editor.hidden=isMobile()&&!open;toggle.textContent=open?'− 일정 입력 접기':'+ 방문 · 이동 일정 입력';toggle.setAttribute('aria-expanded',String(open))}
+ function selectTab(tab){
+   const mobile=isMobile();layout.classList.toggle('mobile-show-map',mobile&&tab==='map');layout.classList.toggle('mobile-show-schedule',mobile&&tab!=='map');
+   $('mobileScheduleTab').classList.toggle('active',tab!=='map');$('mobileMapTab').classList.toggle('active',tab==='map');
+   window.scrollTo({top:0,behavior:'instant'});
+   if(tab==='map'){[80,300,850].forEach(delay=>setTimeout(()=>{try{if(leafletFallback)leafletMap?.invalidateSize();else map?.resize?.();requestSequenceRender()}catch(e){console.warn('모바일 지도 크기 갱신:',e)}},delay));}
+ }
+ editorState(!isMobile());selectTab('schedule');
+ toggle.onclick=()=>editorState(editor.hidden);
+ $('mobileScheduleTab').onclick=()=>selectTab('schedule');$('mobileMapTab').onclick=()=>selectTab('map');
+ const back=document.createElement('button');back.type='button';back.className='mobile-map-back';back.textContent='← 일정으로 돌아가기';
+ document.querySelector('.right .pad')?.prepend(back);back.onclick=()=>selectTab('schedule');
+ for(const id of ['visitMode','moveMode'])$(id).addEventListener('click',()=>{if(isMobile())editorState(true)});
+ // Searching for route endpoints requires the map pane to be visible.
+ for(const id of ['findFrom','findTo','addWaypoint'])$(id).addEventListener('click',()=>{if(isMobile())selectTab('map')});
+ $('waypointList').addEventListener('click',e=>{if(isMobile()&&e.target.closest('[data-wp="find"]'))selectTab('map')});
+ $('saveEntry').addEventListener('click',()=>{if(isMobile()&&!editing && $('placeName').value.trim() && mode==='visit'){setTimeout(()=>editorState(false),80)}});
+ $('agenda').addEventListener('click',e=>{const action=e.target.closest('[data-action]')?.dataset.action;if(!isMobile())return;if(action==='edit')editorState(true);if(action==='up')selectTab('map')});
+ $('searchResults').addEventListener('click',e=>{if(isMobile()&&e.target.closest('.result')){setTimeout(()=>{selectTab('schedule');editorState(true)},80)}});
+ window.addEventListener('resize',()=>{if(!isMobile()){editor.hidden=false;layout.classList.remove('mobile-show-schedule','mobile-show-map')}else if(!layout.classList.contains('mobile-show-map')&&!layout.classList.contains('mobile-show-schedule'))selectTab('schedule');setTimeout(()=>{try{if(leafletFallback)leafletMap?.invalidateSize();else map?.resize?.()}catch{}},160)});
+}
+initData();render();createMap();setupMobileUI(); })();
+</script></body></html>
