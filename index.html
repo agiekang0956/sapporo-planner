@@ -424,27 +424,49 @@ const firebaseConfig={
 };
 const gate=document.getElementById('cloudGate'),message=document.getElementById('cloudMessage'),login=document.getElementById('cloudLogin'),first=document.getElementById('cloudFirst'),retry=document.getElementById('cloudRetry');
 const setMessage=m=>message.textContent=m;
-let app,auth,db,ref,unsub=null,ready=false,cloudRevision=null,pending=false,saveQueue=Promise.resolve(),user=null,remoteReady=false;
-const digest=v=>JSON.stringify({days:v.days,entries:v.entries});
+let app,auth,db,ref,unsub=null,ready=false,cloudRevision=0,pending=false,queuedSaves=0,saveQueue=Promise.resolve(),user=null,remoteReady=false;
 try {app=initializeApp(firebaseConfig);auth=getAuth(app);db=getFirestore(app);ref=doc(db,'trips','sapporo-shared')}catch(e){setMessage('Firebase 초기화 실패: '+e.message);retry.hidden=false;}
 function connected(){gate.hidden=true;ready=true;window.__cloudSave=cloudSave;}
 function showFirst(){gate.hidden=false;first.hidden=false;login.hidden=true;retry.hidden=true;setMessage('공유 데이터가 아직 없습니다. 초기 등록을 진행하세요.');}
 function watch(){if(unsub)unsub();unsub=onSnapshot(ref,snap=>{
  if(!snap.exists()){remoteReady=false;showFirst();return;}
  const val=snap.data();if(!val||!Array.isArray(val.days)||!Array.isArray(val.entries)){gate.hidden=false;setMessage('공유 데이터 형식이 올바르지 않습니다.');return;}
- remoteReady=true;first.hidden=true;cloudRevision=digest(val);
- if(!pending){window.__applyCloudSchedule?.(val)}
+ remoteReady=true;first.hidden=true;
+ if(!pending){cloudRevision=Number(val.revision)||0;window.__applyCloudSchedule?.(val)}
  connected();
 },e=>{ready=false;gate.hidden=false;login.hidden=true;retry.hidden=false;setMessage('클라우드 접근 실패 ('+e.code+'): 로그인한 Google 계정이 Firestore 규칙에 허용됐는지 확인하세요.');});}
 if(auth)onAuthStateChanged(auth,u=>{user=u;window.__cloudSave=null;ready=false;remoteReady=false;gate.hidden=false;first.hidden=true;retry.hidden=true;if(u){setMessage('로그인됨: '+u.email+' · 클라우드 일정 확인 중…');login.hidden=true;watch()}else{if(unsub){unsub();unsub=null;}setMessage('허용된 Google 계정으로 로그인해 주세요.');login.hidden=false;} });
 login.onclick=async()=>{try{login.disabled=true;setMessage('Google 로그인 중…');await signInWithPopup(auth,new GoogleAuthProvider());}catch(e){setMessage('로그인 실패: '+e.code+' / 팝업 차단을 확인하세요.');}finally{login.disabled=false;}};
 retry.onclick=()=>{retry.hidden=true;if(user)watch();else login.hidden=false;};
-async function seed(payload){if(!user)return;first.hidden=true;setMessage('공유 일정 최초 등록 중…');try{await runTransaction(db,async tx=>{const snapshot=await tx.get(ref);if(snapshot.exists())throw Error('다른 사용자가 이미 일정을 등록했습니다. 새로고침하여 최신 데이터를 받으세요.');tx.set(ref,{days:payload.days,entries:payload.entries});});}catch(e){setMessage('초기 등록 실패: '+e.message);first.hidden=false;}}
+async function seed(payload){if(!user)return;first.hidden=true;setMessage('공유 일정 최초 등록 중…');try{await runTransaction(db,async tx=>{const snapshot=await tx.get(ref);if(snapshot.exists())throw Error('다른 사용자가 이미 일정을 등록했습니다. 새로고침하여 최신 데이터를 받으세요.');tx.set(ref,{days:payload.days,entries:payload.entries,revision:1});});}catch(e){setMessage('초기 등록 실패: '+e.message);first.hidden=false;}}
 document.getElementById('cloudSeed').onclick=()=>seed(window.__getEmbeddedSchedule());
 document.getElementById('cloudSeedLocal').onclick=()=>seed(window.__getLocalSchedule());
-function cloudSave(value){if(!ready||!remoteReady||!user){return false;}const json=digest(value);pending=true;setMessage('');saveQueue=saveQueue.then(async()=>{
- // Transactions avoid overwriting unexpected remote edits: fail visibly if doc changed.
- await runTransaction(db,async tx=>{const snapshot=await tx.get(ref);if(!snapshot.exists())throw Error('공유 문서가 사라졌습니다.');const prev=snapshot.data();if(digest(prev)!==cloudRevision)throw Error('다른 기기에서 일정이 바뀌었습니다. 새로고침 후 다시 수정하세요.');tx.set(ref,{days:value.days,entries:value.entries});});cloudRevision=json;pending=false;document.getElementById('status').textContent='☁ 클라우드 저장 완료';
-}).catch(e=>{pending=false;ready=false;gate.hidden=false;retry.hidden=false;setMessage('저장 실패: '+e.message+' 로컬 JSON을 백업한 뒤 다시 접속하세요.');});return true;}
+function cloudSave(value){
+ if(!ready||!remoteReady||!user)return false;
+ // Queue user edits; only the server-side numeric revision decides conflicts.
+ // JSON.stringify comparison is not reliable for Firestore map field ordering.
+ const payload={days:value.days,entries:value.entries};
+ queuedSaves++;pending=true;
+ saveQueue=saveQueue.then(async()=>{
+   let nextRevision;
+   await runTransaction(db,async tx=>{
+     const snapshot=await tx.get(ref);
+     if(!snapshot.exists())throw Error('공유 문서가 사라졌습니다.');
+     const current=Number(snapshot.data().revision)||0;
+     if(current!==cloudRevision)throw Error('다른 기기에서 일정을 수정했습니다. 최신 일정을 다시 불러와 주세요.');
+     nextRevision=current+1;
+     tx.set(ref,{days:payload.days,entries:payload.entries,revision:nextRevision});
+   });
+   cloudRevision=nextRevision;
+   queuedSaves=Math.max(0,queuedSaves-1);
+   pending=queuedSaves>0;
+   document.getElementById('status').textContent=pending?'☁ 동기화 중':'☁ 클라우드 저장 완료';
+ }).catch(e=>{
+   queuedSaves=0;pending=false;ready=false;window.__cloudSave=null;
+   gate.hidden=false;retry.hidden=false;
+   setMessage('저장 실패: '+e.message+' 수정한 일정은 JSON으로 백업한 뒤 다시 연결하세요.');
+ });
+ return true;
+}
 </script>
 </body></html>
