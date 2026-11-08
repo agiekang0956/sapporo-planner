@@ -303,9 +303,12 @@ function googleUrlPlace(q){
  const fromPath=u.pathname.match(/\/maps\/place\/([^/]+)/);
  if(fromPath){try{name=decodeURIComponent(fromPath[1]).replace(/\+/g,' ')}catch{}}
  const blob=decodeURIComponent(u.href);
- let m=blob.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
- if(!m)m=blob.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+ // Google Maps URLs may contain multiple places: the final !3d/!4d pair
+ // identifies the selected place, while earlier pairs may be contextual POIs.
+ const placeCoords=[...blob.matchAll(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/g)];
+ let m=placeCoords.length?placeCoords[placeCoords.length-1]:null;
  if(!m)m=blob.match(/[?&](?:query|q)=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+ if(!m)m=blob.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
  if(m){lat=Number(m[1]);lon=Number(m[2])}
  if(!Number.isFinite(lat)||!Number.isFinite(lon))return {unsupported:true,url:q,name};
  return {name,lat,lon,detail:'Google 지도 링크에서 추출한 좌표 (장소 위치 확인 필요)',url:q};
