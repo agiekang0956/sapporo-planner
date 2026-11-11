@@ -372,16 +372,39 @@ async function searchPlaces(ev){
  out.innerHTML=list.length?`<div class="muted tiny" style="padding:7px 0">${list.length}개 후보 · ${backend} · 지도 중심에서 가까운 순 (직선거리)${list[0].distance>SEARCH_RADIUS_KM?' · 주변 결과가 없어 검색 범위를 확장했습니다':''}</div>`+list.map((p,i)=>`<button type="button" class="result" data-result="${i}">📍 <b>${esc(p.name)}</b> <span class="pill">${distanceLabel(p.distance)}</span>${p.detail?`<div class="muted tiny">${esc(p.detail)}</div>`:''}</button>`).join(''):`<div class="notice">검색 결과를 찾지 못했습니다.${problems.length?' 일부 검색 서비스가 응답하지 않았을 수 있습니다.':''} 일본어나 영어 장소명으로도 검색해 보세요.</div>`;
  out.querySelectorAll('[data-result]').forEach(btn=>btn.onclick=()=>{const p=list[Number(btn.dataset.result)];showPicked(p.lat,p.lon,p.name,p.detail||'');if(map)map.flyTo({center:[p.lon,p.lat],zoom:16});out.innerHTML=''})
 }
+// OSM/Photon/Nominatim often return very long administrative addresses.
+// Only send the business name and a short city hint to Google Maps.
+function conciseGooglePlaceName(raw){
+ const chunks=String(raw||'').trim().split(/[,，\n]/).map(x=>x.trim()).filter(Boolean);
+ if(!chunks.length)return '';
+ // Some search sources repeat the POI name at the start of their display_name.
+ const first=chunks[0];
+ return first;
+}
+function googlePlaceCity(address){
+ const a=String(address||'');
+ // Known trip destinations: use compact, recognizable city names.
+ if(/오타루|小樽|\botaru\b/i.test(a))return 'Otaru';
+ if(/삿포로|札幌|\bsapporo\b/i.test(a))return 'Sapporo';
+ if(/치토세|千歳|\bchitose\b/i.test(a))return 'Chitose';
+ if(/하코다테|函館|\bhakodate\b/i.test(a))return 'Hakodate';
+ if(/아사히카와|旭川|\basahikawa\b/i.test(a))return 'Asahikawa';
+ if(/노보리베츠|登別|\bnoboribetsu\b/i.test(a))return 'Noboribetsu';
+ if(/후라노|富良野|\bfurano\b/i.test(a))return 'Furano';
+ // Unknown cities: avoid sending the entire unstructured address.
+ return 'Japan';
+}
 function googlePlaceSearch(e){
  if(e.kind!=='visit')return;
- const name=String(e.name||'').trim();
  const p=entryPoint(e);
+ const name=conciseGooglePlaceName(e.name);
  if(!name&&!p)return alert('검색할 장소명 또는 좌표가 없습니다.');
- // Use the address captured from the selected search result rather than a hardcoded city.
- // Without a Google Place ID, Google may still show alternative businesses.
- const address=String(e.address||'').trim();
- if(e.googleMapsUrl && /^https:\/\/(maps\.app\.goo\.gl|(?:www\.)?google\.[a-z.]+)\//i.test(e.googleMapsUrl)){window.open(e.googleMapsUrl,'_blank','noopener');return;}
- const query=name ? [name,address||'일본'].join(', ') : `${Number(p.lat)},${Number(p.lon)}`;
+ // Saved Google Maps URLs provide a better destination than a text search.
+ if(e.googleMapsUrl && /^https:\/\/(maps\.app\.goo\.gl|(?:www\.)?google\.[a-z.]+)\//i.test(e.googleMapsUrl)){
+  window.open(e.googleMapsUrl,'_blank','noopener');return;
+ }
+ const city=googlePlaceCity(e.address);
+ const query=name ? `${name} ${city}` : `${Number(p.lat)},${Number(p.lon)}`;
  const url='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(query)+'&hl=ko';
  window.open(url,'_blank','noopener');
 }
